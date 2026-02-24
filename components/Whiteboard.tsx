@@ -238,12 +238,6 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
           >
             <FiMenu className="h-5 w-5" />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3B82F6] text-sm font-bold text-white">
-            A
-          </div>
-          <h1 className="text-sm font-semibold tracking-tight hidden sm:block text-[#E6E8EB]">
-            Archisign AI
-          </h1>
         </div>
 
         <div className="hidden flex-1 items-center justify-center md:flex">
@@ -337,7 +331,7 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
       <div className="flex flex-1 items-stretch overflow-hidden relative">
         {/* Left Sidebar - SceneManager */}
         <aside
-          className={`${mobileMenuOpen ? "absolute inset-y-0 left-0 bg-[#151922]" : "hidden"} w-[280px] shrink-0 flex-col border-r border-white/[0.06] bg-[#151922] md:relative md:flex z-40`}
+          className={`${mobileMenuOpen ? "absolute inset-y-0 left-0 bg-[#151922]" : "hidden"} w-80 shrink-0 flex-col border-r border-white/[0.06] bg-[#151922] md:relative md:flex z-40`}
         >
           <SceneManager
             userId={userId}
@@ -362,7 +356,8 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
 
         {/* Center Canvas */}
         <div className="relative flex-1 bg-dot-pattern">
-          {viewMode === "editor" ? (
+          {/* Always-mounted Excalidraw — toggled via CSS to preserve state */}
+          <div className={viewMode === "editor" ? "h-full w-full" : "hidden"}>
             <Excalidraw
               theme="dark"
               excalidrawAPI={(api: any) => {
@@ -381,7 +376,10 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
                 },
               }}
             />
-          ) : (
+          </div>
+
+          {/* Always-mounted Code View — toggled via CSS */}
+          <div className={viewMode === "code" ? "h-full" : "hidden"}>
             <div className="h-full overflow-auto p-6 bg-[#0F1115]">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-[#E6E8EB]">Scene JSON</h2>
@@ -408,7 +406,7 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
                 )}
               </pre>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Right Sidebar - AIPanel */}
