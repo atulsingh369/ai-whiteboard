@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabaseClient";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import HistoryTab from "./HistoryTab";
+import { FiPlusSquare, FiLoader, FiTrash2, FiClock } from "react-icons/fi";
 
 type ScenePayload = {
   elements: unknown[];
@@ -22,14 +24,17 @@ type SceneManagerProps = {
   userId: string;
   onLoadScene: (scene: ScenePayload) => void;
   getCurrentScene: () => ScenePayload | null;
+  onRegisterSave?: (saveFn: () => void) => void;
 };
 
 export default function SceneManager({
   userId,
   onLoadScene,
   getCurrentScene,
+  onRegisterSave,
 }: SceneManagerProps) {
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [activeTab, setActiveTab] = useState<"scenes" | "history">("scenes");
   const [title, setTitle] = useState("Untitled Scene");
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
   const [scenes, setScenes] = useState<SceneRow[]>([]);
@@ -71,6 +76,18 @@ export default function SceneManager({
 
     void loadScenes();
   }, [loadScenes, supabase]);
+
+  useEffect(() => {
+    if (onRegisterSave) {
+      onRegisterSave(() => {
+        if (selectedSceneId) {
+          void handleUpdateSelected();
+        } else {
+          void handleSaveNew();
+        }
+      });
+    }
+  });
 
   async function handleSaveNew() {
     setError(null);
@@ -195,174 +212,154 @@ export default function SceneManager({
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#FAFAFA] text-slate-800">
-      <div className="p-4 space-y-4 border-b border-slate-200">
-        <h2 className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-          Library
-        </h2>
+    <div className="flex h-full flex-col bg-[#151922] text-slate-200">
+      <div className="p-5 pb-3">
+        <button
+          type="button"
+          onClick={handleSaveNew}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] py-3 text-sm font-bold text-white transition duration-150 hover:bg-blue-600"
+        >
+          <FiPlusSquare className="h-4 w-4" />
+          New Project
+        </button>
+      </div>
 
-        <div className="space-y-1">
-          <button className="w-full flex items-center justify-between rounded-lg bg-white border border-slate-200 px-3 py-2 text-sm font-semibold text-blue-600 shadow-sm">
-            <span className="flex items-center gap-2">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
-              All Scenes
-            </span>
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700">
-              {scenes.length}
-            </span>
+      <div className="px-5 pb-4">
+        <div className="flex p-1 space-x-1 rounded-xl bg-[#0F1115] border border-white/[0.06]">
+          <button
+            onClick={() => setActiveTab("scenes")}
+            className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition duration-150 ${
+              activeTab === "scenes"
+                ? "bg-[#1A1F29] text-[#E6E8EB] shadow-sm ring-1 ring-white/[0.06]"
+                : "text-[#9CA3AF] hover:text-[#E6E8EB]"
+            }`}
+          >
+            Scenes
           </button>
-        </div>
-
-        <div className="pt-2">
-          <input
-            type="text"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Name your scene..."
-            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-          />
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={handleSaveNew}
-              className="flex-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
-              Save New
-            </button>
-            <button
-              type="button"
-              onClick={handleUpdateSelected}
-              disabled={!selectedSceneId}
-              className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Update
-            </button>
-          </div>
-          {error ? (
-            <p className="mt-2 text-[11px] font-medium text-red-500">{error}</p>
-          ) : null}
-          {message ? (
-            <p className="mt-2 text-[11px] font-medium text-emerald-600">
-              {message}
-            </p>
-          ) : null}
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition duration-150 ${
+              activeTab === "history"
+                ? "bg-[#1A1F29] text-[#E6E8EB] shadow-sm ring-1 ring-white/[0.06]"
+                : "text-[#9CA3AF] hover:text-[#E6E8EB]"
+            }`}
+          >
+            History
+          </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <h2 className="mb-3 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-          Recent Projects
-        </h2>
+      <div className="flex flex-1 flex-col overflow-y-auto p-4 custom-scrollbar">
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-500 border border-red-500/20">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="mb-4 rounded-lg bg-green-500/10 p-3 text-sm text-green-400 border border-green-500/20">
+            {message}
+          </div>
+        )}
 
-        {loading ? (
-          <div className="flex py-8 justify-center">
-            <svg
-              className="animate-spin h-5 w-5 text-slate-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-        ) : scenes.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center">
-            <p className="text-xs text-slate-500">No scenes saved yet.</p>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {scenes.map((scene) => (
-              <li
-                key={scene.id}
-                className="group relative rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-300 hover:shadow-md cursor-pointer"
-                onClick={() => handleLoad(scene)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <div
-                      className={`h-2 w-2 shrink-0 rounded-full ${selectedSceneId === scene.id ? "bg-blue-500" : "bg-slate-300"}`}
-                    ></div>
-                    <span
-                      className={`truncate text-sm ${selectedSceneId === scene.id ? "font-semibold text-slate-900" : "font-medium text-slate-700"}`}
-                    >
-                      {scene.title}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(scene.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    title="Delete scene"
+        {activeTab === "scenes" ? (
+          <>
+            <div className="mb-4">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Scene title..."
+                className="w-full rounded-xl border border-white/[0.06] bg-[#0F1115] px-3 py-2 text-sm text-[#E6E8EB] placeholder:text-[#9CA3AF] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition duration-150"
+              />
+              {selectedSceneId && (
+                <button
+                  type="button"
+                  onClick={handleUpdateSelected}
+                  className="mt-2 w-full rounded-lg bg-[#1A1F29] border border-white/[0.06] px-3 py-2 text-xs font-semibold text-[#E6E8EB] shadow-sm transition duration-150 hover:bg-white/5"
+                >
+                  Update Selected Scene
+                </button>
+              )}
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center p-8">
+                <FiLoader className="animate-spin h-5 w-5 text-slate-500" />
+              </div>
+            ) : scenes.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                <p className="text-xs text-slate-500">No scenes saved yet.</p>
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {scenes.map((scene) => (
+                  <li
+                    key={scene.id}
+                    className={`group relative rounded-xl border p-3 shadow-sm transition duration-150 cursor-pointer ${
+                      selectedSceneId === scene.id
+                        ? "border-white/[0.06] border-l-[3px] border-l-[#3B82F6] bg-[#1A1F29]"
+                        : "border-white/[0.06] bg-[#1A1F29] hover:border-white/[0.12]"
+                    }`}
+                    onClick={() => handleLoad(scene)}
                   >
-                    <svg
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <p className="mt-1.5 ml-4 pl-0.5 text-[10px] text-slate-400">
-                  {new Date(scene.updated_at).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </li>
-            ))}
-          </ul>
+                    <div className="flex items-start justify-between">
+                      <div className="flex flex-col overflow-hidden">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className={`truncate text-xs ${selectedSceneId === scene.id ? "font-bold text-[#E6E8EB]" : "font-semibold text-[#9CA3AF]"}`}
+                          >
+                            {scene.title}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(scene.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition duration-150 rounded-md p-1.5 text-slate-500 hover:bg-red-500/20 hover:text-red-400"
+                        title="Delete scene"
+                      >
+                        <FiTrash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <p className="mt-2 text-[10px] text-[#6B7280] flex items-center gap-1.5">
+                      <FiClock className="h-3 w-3" />
+                      {new Date(scene.updated_at).toLocaleDateString(
+                        undefined,
+                        {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        ) : (
+          <HistoryTab />
         )}
       </div>
 
-      <div className="p-4 border-t border-slate-200 bg-white">
-        <div className="flex items-center justify-between rounded-xl bg-slate-50 p-2 border border-slate-200">
+      <div className="p-4 border-t border-white/[0.06] bg-[#1A1F29] shrink-0">
+        <div className="flex items-center justify-between rounded-xl bg-[#0F1115] p-2 border border-white/[0.06]">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-100 text-[10px] font-bold text-indigo-700">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/20 text-[10px] font-bold text-[#9CA3AF]">
               P
             </div>
-            <span className="text-xs font-semibold text-slate-700">
+            <span className="text-xs font-semibold text-[#E6E8EB]">
               Pro Plan
             </span>
           </div>
-          <button className="text-[10px] font-bold text-blue-600 hover:text-blue-700 px-2 py-1">
+          <button
+            className="text-[10px] font-bold text-[#3B82F6] hover:text-[#2563EB] transition duration-150 px-2 py-1"
+            onClick={() => alert("Pro plan coming soon! Stay tuned.")}
+          >
             Upgrade
           </button>
         </div>

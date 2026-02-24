@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 * {
@@ -19,7 +19,10 @@ body {
 }
 
 .bg-dot-pattern {
-  background-color: #f5f7fa;
-  background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+  background-color: #111318;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px
+  );
   background-size: 24px 24px;
 }

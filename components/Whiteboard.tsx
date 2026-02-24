@@ -12,6 +12,8 @@ import {
 import { z } from "zod";
 import AIPanel from "@/components/AIPanel";
 import SceneManager from "@/components/SceneManager";
+import { FiMenu, FiDownload, FiSave, FiLogOut } from "react-icons/fi";
+import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import type { ExcalidrawElementLike } from "@/types/diagram";
 
 const Excalidraw = dynamic(
@@ -57,6 +59,14 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
   const apiRef = useRef<ExcalidrawAPI | null>(null);
   const loadJsonInputRef = useRef<HTMLInputElement | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"editor" | "code">("editor");
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
+  const saveToSupabaseRef = useRef<(() => void) | null>(null);
+
+  useOnClickOutside(avatarMenuRef, () => {
+    if (avatarMenuOpen) setAvatarMenuOpen(false);
+  });
 
   const captureScene = useCallback((): ScenePayload | null => {
     const api = apiRef.current;
@@ -218,43 +228,46 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
   }
 
   return (
-    <main className="flex h-screen w-full flex-col bg-[#F5F7FA] font-sans text-slate-900">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
+    <main className="flex h-screen w-full flex-col bg-[#0F1115] font-sans text-[#E6E8EB]">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#1A1F29] px-4">
         <div className="flex flex-1 items-center gap-3">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 -ml-1.5 text-slate-500 hover:bg-slate-100 rounded-md"
+            className="md:hidden p-1.5 -ml-1.5 text-slate-400 hover:bg-white/5 hover:text-[#E6E8EB] rounded-md transition duration-150"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <FiMenu className="h-5 w-5" />
           </button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3B82F6] text-sm font-bold text-white">
             A
           </div>
-          <h1 className="text-sm font-semibold tracking-tight hidden sm:block">
+          <h1 className="text-sm font-semibold tracking-tight hidden sm:block text-[#E6E8EB]">
             Archisign AI
           </h1>
         </div>
 
         <div className="hidden flex-1 items-center justify-center md:flex">
-          <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-1">
-            <button className="rounded-md bg-white px-4 py-1.5 text-xs font-semibold text-slate-800 shadow-sm blur-0">
+          <div className="flex items-center rounded-lg border border-white/[0.06] bg-[#0F1115] p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode("editor")}
+              className={`rounded-md px-4 py-1.5 text-xs font-semibold transition duration-150 border ${
+                viewMode === "editor"
+                  ? "bg-[#1A1F29] text-[#E6E8EB] border-white/[0.06]"
+                  : "border-transparent text-[#9CA3AF] hover:text-[#E6E8EB]"
+              }`}
+            >
               Editor
             </button>
-            <button className="rounded-md px-4 py-1.5 text-xs font-medium text-slate-500 transition hover:text-slate-900">
+            <button
+              type="button"
+              onClick={() => setViewMode("code")}
+              className={`rounded-md px-4 py-1.5 text-xs font-medium transition duration-150 border ${
+                viewMode === "code"
+                  ? "bg-[#1A1F29] text-[#E6E8EB] border-white/[0.06]"
+                  : "border-transparent text-[#9CA3AF] hover:text-[#E6E8EB]"
+              }`}
+            >
               Code View
             </button>
           </div>
@@ -264,49 +277,52 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
           <button
             type="button"
             onClick={actions.exportPng}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+            className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-[#1A1F29] px-4 py-1.5 text-xs font-semibold text-[#E6E8EB] transition duration-150 hover:bg-white/5"
           >
-            <svg
-              className="h-3 w-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 string 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-              />
-            </svg>
+            <FiDownload className="h-4 w-4" />
             Export
           </button>
           <button
             type="button"
-            onClick={actions.saveLocal}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-[0_2px_10px_rgba(37,99,235,0.2)] transition hover:bg-blue-700"
+            onClick={() => {
+              if (saveToSupabaseRef.current) {
+                saveToSupabaseRef.current();
+              } else {
+                actions.saveLocal();
+              }
+            }}
+            className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-4 py-1.5 text-xs font-semibold text-white transition duration-150 hover:bg-blue-600"
           >
-            <svg
-              className="h-3 w-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-              />
-            </svg>
+            <FiSave className="h-4 w-4" />
             Save
           </button>
-          <div
-            className="ml-2 h-8 w-8 rounded-full border border-orange-200 bg-orange-100 ring-2 ring-white cursor-pointer"
-            title={userEmail}
-          ></div>
+          <div className="relative ml-2" ref={avatarMenuRef}>
+            <button
+              type="button"
+              onClick={() => setAvatarMenuOpen(!avatarMenuOpen)}
+              className="h-8 w-8 rounded-full border border-white/[0.06] bg-[#151922] cursor-pointer flex items-center justify-center text-xs font-bold text-[#E6E8EB] hover:bg-[#1A1F29] transition duration-150"
+              title={userEmail}
+            >
+              {userEmail?.charAt(0).toUpperCase()}
+            </button>
+            {avatarMenuOpen && (
+              <div className="absolute right-0 top-10 z-50 w-56 rounded-xl border border-white/[0.06] bg-[#1A1F29] p-2">
+                <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
+                  <p className="text-xs font-semibold text-[#E6E8EB] truncate">
+                    {userEmail}
+                  </p>
+                  <p className="text-[10px] text-[#9CA3AF] mt-0.5">Admin</p>
+                </div>
+                <a
+                  href="/logout"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[#9CA3AF] hover:bg-white/5 hover:text-[#E6E8EB] transition duration-150 w-full"
+                >
+                  <FiLogOut className="h-4 w-4" />
+                  Sign Out
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -321,7 +337,7 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
       <div className="flex flex-1 items-stretch overflow-hidden relative">
         {/* Left Sidebar - SceneManager */}
         <aside
-          className={`${mobileMenuOpen ? "absolute inset-y-0 left-0 bg-[#FAFAFA]" : "hidden"} w-[280px] shrink-0 flex-col border-r border-slate-200 bg-[#FAFAFA] md:relative md:flex z-40 shadow-[4px_0_24px_-16px_rgba(0,0,0,0.05)]`}
+          className={`${mobileMenuOpen ? "absolute inset-y-0 left-0 bg-[#151922]" : "hidden"} w-[280px] shrink-0 flex-col border-r border-white/[0.06] bg-[#151922] md:relative md:flex z-40`}
         >
           <SceneManager
             userId={userId}
@@ -330,46 +346,78 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
               setMobileMenuOpen(false);
             }}
             getCurrentScene={captureScene}
+            onRegisterSave={(saveFn) => {
+              saveToSupabaseRef.current = saveFn;
+            }}
           />
         </aside>
 
         {/* Backdrop for mobile */}
         {mobileMenuOpen && (
           <div
-            className="absolute inset-0 bg-slate-900/20 z-30 md:hidden backdrop-blur-sm"
+            className="absolute inset-0 bg-[#0F1115]/80 z-30 md:hidden backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
 
         {/* Center Canvas */}
         <div className="relative flex-1 bg-dot-pattern">
-          <Excalidraw
-            theme="light"
-            excalidrawAPI={(api: any) => {
-              if (api) {
-                // @ts-ignore
-                apiRef.current = api;
-              }
-            }}
-            UIOptions={{
-              canvasActions: {
-                loadScene: true,
-                saveAsImage: true,
-                export: { saveFileToDisk: true },
-                clearCanvas: true,
-                toggleTheme: false,
-              },
-            }}
-          />
+          {viewMode === "editor" ? (
+            <Excalidraw
+              theme="dark"
+              excalidrawAPI={(api: any) => {
+                if (api) {
+                  // @ts-ignore
+                  apiRef.current = api;
+                }
+              }}
+              UIOptions={{
+                canvasActions: {
+                  loadScene: true,
+                  saveAsImage: true,
+                  export: { saveFileToDisk: true },
+                  clearCanvas: true,
+                  toggleTheme: false,
+                },
+              }}
+            />
+          ) : (
+            <div className="h-full overflow-auto p-6 bg-[#0F1115]">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-bold text-[#E6E8EB]">Scene JSON</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const scene = captureScene();
+                    if (scene) {
+                      navigator.clipboard.writeText(
+                        JSON.stringify(scene, null, 2),
+                      );
+                    }
+                  }}
+                  className="rounded-lg border border-white/[0.06] bg-[#1A1F29] px-3 py-1.5 text-xs font-semibold text-[#E6E8EB] hover:bg-white/5 transition duration-150"
+                >
+                  Copy to Clipboard
+                </button>
+              </div>
+              <pre className="text-xs text-[#9CA3AF] font-mono bg-[#151922] border border-white/[0.06] rounded-xl p-4 overflow-auto max-h-[calc(100vh-180px)] whitespace-pre-wrap break-words">
+                {JSON.stringify(
+                  captureScene() ?? { elements: [], appState: {}, files: {} },
+                  null,
+                  2,
+                )}
+              </pre>
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar - AIPanel */}
-        <aside className="hidden w-[340px] shrink-0 border-l border-slate-200 bg-white lg:flex lg:flex-col z-10 shadow-[-4px_0_24px_-16px_rgba(0,0,0,0.05)]">
+        <aside className="hidden w-[340px] shrink-0 border-l border-white/[0.06] bg-[#1A1F29] lg:flex lg:flex-col z-10">
           <AIPanel onElementsGenerated={onGeneratedElements} />
         </aside>
 
         {/* Absolute floating AI panel on md screens */}
-        <div className="hidden md:block lg:hidden absolute bottom-6 right-6 z-20 w-[340px] shadow-2xl rounded-xl border border-slate-200">
+        <div className="hidden md:block lg:hidden absolute bottom-6 right-6 z-20 w-[340px] rounded-xl border border-white/[0.06] overflow-hidden bg-[#1A1F29] shadow-2xl">
           <AIPanel onElementsGenerated={onGeneratedElements} />
         </div>
       </div>
