@@ -215,22 +215,12 @@ export default function SceneManager({
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#151922] text-[#E6E8EB]">
-      {/* App Logo Top Navigation Bar Area */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#3B82F6] text-[11px] font-bold text-white shadow-sm ring-1 ring-white/10">
-          A
-        </div>
-        <h1 className="text-sm font-bold tracking-tight text-[#E6E8EB]">
-          Archisign AI
-        </h1>
-      </div>
-
+    <div className="flex h-full flex-col bg-surface-1 text-txt-primary">
       <div className="px-5 pt-5 pb-4">
         <button
           type="button"
           onClick={handleSaveNew}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] py-2.5 text-xs font-bold text-white shadow-sm transition duration-150 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50"
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-xs font-bold text-white shadow-sm transition duration-150 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50"
         >
           <FiPlusSquare className="h-4 w-4" />
           New Project
@@ -257,14 +247,14 @@ export default function SceneManager({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Name your scene..."
-                className="w-full rounded-xl border border-transparent hover:border-white/[0.06] bg-transparent hover:bg-[#1A1F29] px-3 py-2 text-sm font-bold text-[#E6E8EB] placeholder:text-[#9CA3AF] focus:border-[#3B82F6] focus:bg-[#1A1F29] focus:outline-none transition-all duration-150 mb-3"
+                className="w-full rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-surface-2 px-3 py-2 text-sm font-bold text-txt-primary placeholder:text-txt-secondary focus:border-accent focus:bg-surface-2 focus:outline-none transition-all duration-150 mb-3"
               />
               {selectedSceneId && (
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleUpdateSelected}
-                    className="flex-1 rounded-lg bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-2 text-[11px] font-bold text-[#3B82F6] transition-all duration-150 hover:bg-[#3B82F6]/20 focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                    className="flex-1 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 text-[11px] font-bold text-accent transition-all duration-150 hover:bg-accent/20 focus:outline-none focus:ring-1 focus:ring-accent"
                   >
                     Sync State
                   </button>
@@ -274,11 +264,13 @@ export default function SceneManager({
 
             {loading ? (
               <div className="flex justify-center p-8">
-                <FiLoader className="animate-spin h-5 w-5 text-[#9CA3AF]" />
+                <FiLoader className="animate-spin h-5 w-5 text-txt-secondary" />
               </div>
             ) : scenes.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-white/[0.06] p-6 text-center shadow-none">
-                <p className="text-xs text-[#9CA3AF]">No scenes saved yet.</p>
+              <div className="rounded-xl border border-dashed border-border-subtle p-6 text-center shadow-none">
+                <p className="text-xs text-txt-secondary">
+                  No scenes saved yet.
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
@@ -331,18 +323,18 @@ export default function SceneManager({
         )}
       </div>
 
-      <div className="p-4 border-t border-white/[0.06] bg-[#1A1F29] shrink-0">
-        <div className="flex items-center justify-between rounded-xl bg-[#0F1115] p-2 border border-white/[0.06]">
+      <div className="p-4 border-t border-border-subtle bg-surface-1 shrink-0">
+        <div className="flex items-center justify-between rounded-xl bg-surface-2 p-2 border border-border-subtle shadow-sm">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500/20 text-[10px] font-bold text-[#9CA3AF]">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/20 text-[10px] font-bold text-accent">
               P
             </div>
-            <span className="text-xs font-semibold text-[#E6E8EB]">
+            <span className="text-xs font-semibold text-txt-primary">
               Pro Plan
             </span>
           </div>
           <button
-            className="text-[10px] font-bold text-[#3B82F6] hover:text-[#2563EB] transition duration-150 px-2 py-1"
+            className="text-[10px] font-bold text-accent hover:text-accent-hover transition duration-150 px-2 py-1"
             onClick={() => alert("Pro plan coming soon! Stay tuned.")}
           >
             Upgrade

@@ -99,17 +99,17 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col p-5 bg-[#1A1F29] text-[#E6E8EB] border-l border-white/[0.06] relative z-10 w-80">
+    <div className="flex h-full flex-col p-5 bg-transparent text-txt-primary border-t-0 relative z-10 w-80">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-[15px] font-bold tracking-tight text-[#E6E8EB] flex items-center gap-2">
-          <FiBox className="h-4 w-4 text-[#3B82F6]" />
+        <h2 className="text-[15px] font-bold tracking-tight text-txt-primary flex items-center gap-2">
+          <FiBox className="h-4 w-4 text-accent" />
           AI Architect
         </h2>
       </div>
 
       <div className="mb-6">
         <label
-          className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-2"
+          className="text-[11px] font-bold text-txt-secondary uppercase tracking-wider block mb-2"
           htmlFor="model"
         >
           Model
@@ -119,13 +119,13 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
             id="model"
             value={model}
             onChange={(event) => setModel(event.target.value)}
-            className="w-full appearance-none rounded-xl border border-white/[0.06] bg-[#0F1115] px-3 py-2.5 text-sm font-medium text-[#E6E8EB] outline-none transition duration-150 focus:border-[#3B82F6] focus:bg-[#1A1F29] focus:ring-1 focus:ring-[#3B82F6] cursor-pointer"
+            className="w-full appearance-none rounded-xl border border-border-subtle bg-surface-2 px-3 py-2.5 text-sm font-medium text-txt-primary outline-none transition duration-150 focus:border-accent focus:bg-surface-3 focus:ring-1 focus:ring-accent cursor-pointer"
           >
             {MODELS.map((item) => (
               <option
                 key={item}
                 value={item}
-                className="bg-[#1A1F29] text-[#E6E8EB]"
+                className="bg-surface-2 text-txt-primary"
               >
                 {item.includes("405b")
                   ? item + " (Pro)"
@@ -135,7 +135,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#9CA3AF]">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-txt-secondary">
             <FiChevronDown className="h-4 w-4" />
           </div>
         </div>
@@ -144,14 +144,14 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
       <div className="flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <label
-            className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider"
+            className="text-[11px] font-bold text-txt-secondary uppercase tracking-wider"
             htmlFor="prompt"
           >
             Prompt
           </label>
           <button
             type="button"
-            className="text-[11px] font-bold text-[#3B82F6] hover:text-[#2563EB] transition duration-150"
+            className="text-[11px] font-bold text-accent hover:text-accent-hover transition duration-150"
             onClick={() => {
               setShowHistory(!showHistory);
               if (!showHistory && history.length === 0) {
@@ -164,31 +164,31 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
         </div>
 
         {showHistory ? (
-          <div className="flex-1 overflow-y-auto rounded-xl border border-white/[0.06] bg-[#0F1115] custom-scrollbar">
+          <div className="flex-1 overflow-y-auto rounded-xl border border-border-subtle bg-surface-2 custom-scrollbar">
             {historyLoading ? (
               <div className="flex py-8 justify-center">
-                <FiLoader className="animate-spin h-5 w-5 text-[#9CA3AF]" />
+                <FiLoader className="animate-spin h-5 w-5 text-txt-secondary" />
               </div>
             ) : history.length === 0 ? (
-              <p className="p-4 text-xs text-[#9CA3AF] text-center">
+              <p className="p-4 text-xs text-txt-secondary text-center">
                 No history yet. Generate your first diagram!
               </p>
             ) : (
-              <ul className="divide-y divide-white/[0.06]">
+              <ul className="divide-y divide-border-subtle">
                 {history.map((item) => (
                   <li key={item.id} className="group">
                     <button
                       type="button"
-                      className="w-full text-left px-3 py-3 hover:bg-white/5 transition duration-150"
+                      className="w-full text-left px-3 py-3 hover:bg-surface-3 transition duration-150"
                       onClick={() => {
                         setPrompt(item.prompt);
                         setShowHistory(false);
                       }}
                     >
-                      <p className="text-xs font-semibold text-[#E6E8EB] group-hover:text-[#3B82F6] truncate transition duration-150">
+                      <p className="text-xs font-semibold text-txt-primary group-hover:text-accent truncate transition duration-150">
                         {item.prompt}
                       </p>
-                      <p className="text-[10px] text-[#9CA3AF] mt-1 uppercase tracking-widest font-bold">
+                      <p className="text-[10px] text-txt-secondary mt-1 uppercase tracking-widest font-bold">
                         {item.model_used.includes("/")
                           ? item.model_used.split("/").pop()
                           : item.model_used}{" "}
@@ -217,7 +217,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
             placeholder={
               "Describe your system architecture...\nExample: Create a microservices architecture for an e-commerce app using AWS Lambda, API Gateway, and DynamoDB. Include a Redis cache layer."
             }
-            className="flex-1 w-full min-h-[160px] resize-none rounded-xl border border-white/[0.06] bg-[#0F1115] p-3 text-sm text-[#E6E8EB] placeholder:text-[#9CA3AF] outline-none transition duration-150 focus:border-[#3B82F6] focus:bg-[#1A1F29] focus:ring-1 focus:ring-[#3B82F6]"
+            className="flex-1 w-full min-h-[160px] resize-none rounded-xl border border-border-subtle bg-surface-2 p-3 text-sm text-txt-primary placeholder:text-txt-secondary outline-none transition duration-150 focus:border-accent focus:bg-surface-3 focus:ring-1 focus:ring-accent"
           />
         )}
 
@@ -227,7 +227,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
       </div>
 
       <div className="mt-6">
-        <label className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider block mb-3">
+        <label className="text-[11px] font-bold text-txt-secondary uppercase tracking-wider block mb-3">
           Style
         </label>
         <div className="flex gap-2">
@@ -236,12 +236,12 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
             onClick={() => setStyle("technical")}
             className={`flex-1 flex justify-center items-center gap-2 rounded-xl py-2.5 text-xs font-bold transition duration-150 border ${
               style === "technical"
-                ? "border-white/[0.12] bg-[#151922] text-[#E6E8EB]"
-                : "border-white/[0.06] bg-[#0F1115] text-[#9CA3AF] hover:text-[#E6E8EB] hover:bg-[#151922]"
+                ? "border-border-subtle bg-surface-3 text-txt-primary shadow-sm"
+                : "border-transparent bg-surface-2 text-txt-secondary hover:text-txt-primary hover:bg-surface-3"
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full ${style === "technical" ? "bg-[#E6E8EB]" : "bg-[#4B5563]"}`}
+              className={`w-2 h-2 rounded-full ${style === "technical" ? "bg-txt-primary" : "bg-txt-muted"}`}
             />
             Technical
           </button>
@@ -250,12 +250,12 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
             onClick={() => setStyle("handdrawn")}
             className={`flex-1 flex justify-center items-center gap-2 rounded-xl py-2.5 text-xs font-bold transition duration-150 border ${
               style === "handdrawn"
-                ? "border-white/[0.12] bg-[#151922] text-[#E6E8EB]"
-                : "border-white/[0.06] bg-[#0F1115] text-[#9CA3AF] hover:text-[#E6E8EB] hover:bg-[#151922]"
+                ? "border-border-subtle bg-surface-3 text-txt-primary shadow-sm"
+                : "border-transparent bg-surface-2 text-txt-secondary hover:text-txt-primary hover:bg-surface-3"
             }`}
           >
             <div
-              className={`w-2 h-2 rounded-full ${style === "handdrawn" ? "bg-[#E6E8EB]" : "bg-[#4B5563]"}`}
+              className={`w-2 h-2 rounded-full ${style === "handdrawn" ? "bg-txt-primary" : "bg-txt-muted"}`}
             />
             Hand-drawn
           </button>
@@ -266,7 +266,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
         type="button"
         onClick={handleGenerate}
         disabled={loading}
-        className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] py-3 text-sm font-bold text-white transition duration-150 hover:bg-blue-600 disabled:bg-[#374151] disabled:text-[#9CA3AF] disabled:cursor-not-allowed"
+        className="mt-6 w-full flex items-center justify-center gap-2 rounded-xl bg-accent py-3 text-sm font-bold text-white transition duration-150 hover:bg-accent-hover disabled:bg-surface-3 disabled:text-txt-muted disabled:cursor-not-allowed shadow-sm"
       >
         {loading ? (
           <FiLoader className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
@@ -275,7 +275,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
         )}
         {loading ? "Generating..." : "Generate Diagram"}
       </button>
-      <p className="mt-3 text-center text-[10px] text-[#9CA3AF]">
+      <p className="mt-3 text-center text-[10px] text-txt-secondary">
         Generates editable vector components based on your prompt.
       </p>
     </div>
