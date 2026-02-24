@@ -170,7 +170,7 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
     <main className="h-screen bg-slate-950 text-slate-100">
       <header className="flex items-center justify-between border-b border-slate-800 px-4 py-2">
         <div>
-          <h1 className="text-lg font-semibold">AI Whiteboard (Personal)</h1>
+          <h1 className="text-lg font-semibold">AI Whiteboard </h1>
           <p className="text-xs text-slate-400">Logged in as {userEmail}</p>
         </div>
 

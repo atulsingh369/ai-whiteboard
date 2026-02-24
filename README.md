@@ -1,6 +1,7 @@
-# AI Whiteboard (Personal)
+# AI Whiteboard
 
 Production-ready Next.js 14 internal whiteboard with:
+
 - Supabase Google OAuth auth
 - Admin-only access via `admins` table
 - Excalidraw canvas with local + Supabase persistence
@@ -8,6 +9,7 @@ Production-ready Next.js 14 internal whiteboard with:
 - Per-user AI execution logs
 
 ## Tech Stack
+
 - Next.js 14 (App Router)
 - TypeScript
 - TailwindCSS
@@ -67,8 +69,10 @@ NVIDIA_NIM_API_KEY=
 1. Create a Supabase project.
 2. Enable Google provider in `Authentication -> Providers -> Google`.
 3. Add redirect URLs:
+
 - `http://localhost:3000/auth/callback`
 - `https://<your-vercel-domain>/auth/callback`
+
 4. Run the SQL below in Supabase SQL Editor.
 5. Insert allowed emails into `public.admins`.
 
@@ -233,10 +237,12 @@ Open `http://localhost:3000`.
 1. Push repo to GitHub.
 2. Import project in Vercel.
 3. Configure environment variables in Vercel project settings:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NVIDIA_NIM_API_KEY`
+
 4. Ensure Supabase Google OAuth redirect includes your Vercel domain callback.
 5. Deploy.
 

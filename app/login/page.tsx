@@ -39,9 +39,9 @@ export default function LoginPage() {
         redirectTo,
         queryParams: {
           access_type: "offline",
-          prompt: "consent"
-        }
-      }
+          prompt: "consent",
+        },
+      },
     });
 
     if (signInError) {
@@ -54,12 +54,17 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-slate-950 p-6">
       <section className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
-        <h1 className="text-xl font-semibold text-white">AI Whiteboard (Personal)</h1>
+        <h1 className="text-xl font-semibold text-white">AI Whiteboard </h1>
         <p className="mt-2 text-sm text-slate-300">
-          Sign in with Google. Access is restricted to admin emails listed in Supabase.
+          Sign in with Google. Access is restricted to admin emails listed in
+          Supabase.
         </p>
 
-        {error ? <p className="mt-4 rounded-md bg-red-950/70 p-2 text-sm text-red-300">{error}</p> : null}
+        {error ? (
+          <p className="mt-4 rounded-md bg-red-950/70 p-2 text-sm text-red-300">
+            {error}
+          </p>
+        ) : null}
 
         <button
           type="button"

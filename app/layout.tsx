@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Whiteboard (Personal)",
-  description: "Personal internal whiteboard with AI diagram generation"
+  title: "AI Whiteboard ",
+  description: "Personal internal whiteboard with AI diagram generation",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-slate-950 text-slate-100 antialiased">{children}</body>
+      <body className="bg-slate-950 text-slate-100 antialiased">
+        {children}
+      </body>
     </html>
   );
 }
