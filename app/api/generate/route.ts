@@ -11,6 +11,7 @@ const generateRequestSchema = z.object({
     .min(1, "Prompt is required")
     .max(4000, "Prompt is too long"),
   model: z.string().trim().min(1).max(200).default("meta/llama3-70b-instruct"),
+  sceneTitle: z.string().optional().nullable(),
 });
 
 const isDev = process.env.NODE_ENV === "development";
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       diagram,
       elements,
       diagnostics: isDev ? diagnostics : undefined,
+      sceneTitle: parsedBody.data.sceneTitle,
     };
 
     // Warn if fallback was used

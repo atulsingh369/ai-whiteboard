@@ -8,6 +8,7 @@ import { FiPlusSquare, FiLoader } from "react-icons/fi";
 import SegmentedTabs from "./sidebar/SegmentedTabs";
 import ActiveSceneCard from "./sidebar/ActiveSceneCard";
 import SceneListItem from "./sidebar/SceneListItem";
+import { useUIStore } from "@/stores/uiStore";
 
 type ScenePayload = {
   elements: unknown[];
@@ -36,10 +37,15 @@ export default function SceneManager({
   getCurrentScene,
   onRegisterSave,
 }: SceneManagerProps) {
+  const {
+    activeSceneId,
+    activeSceneTitle,
+    setActiveScene,
+    setSyncState,
+    syncState,
+  } = useUIStore();
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [activeTab, setActiveTab] = useState<"scenes" | "history">("scenes");
-  const [title, setTitle] = useState("Untitled Scene");
-  const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
   const [scenes, setScenes] = useState<SceneRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -80,17 +86,36 @@ export default function SceneManager({
     void loadScenes();
   }, [loadScenes, supabase]);
 
+  const handleCloudSync = useCallback(async () => {
+    if (activeSceneId) {
+      await handleUpdateSelected();
+    } else {
+      await handleSaveNew();
+    }
+  }, [activeSceneId, activeSceneTitle, getCurrentScene, supabase, userId]);
+
   useEffect(() => {
     if (onRegisterSave) {
-      onRegisterSave(() => {
-        if (selectedSceneId) {
-          void handleUpdateSelected();
-        } else {
-          void handleSaveNew();
-        }
-      });
+      onRegisterSave(handleCloudSync);
     }
-  });
+
+    const listener = () => handleCloudSync();
+    window.addEventListener("triggerCloudSync", listener);
+
+    return () => {
+      window.removeEventListener("triggerCloudSync", listener);
+    };
+  }, [onRegisterSave, handleCloudSync]);
+
+  async function handleStartNewProject() {
+    if (syncState === "unsynced") {
+      await handleCloudSync();
+    }
+    setActiveScene(null, "Untitled Project");
+    onLoadScene({ elements: [], appState: {}, files: {} });
+    setSyncState("synced");
+    setMessage("Started new project.");
+  }
 
   async function handleSaveNew() {
     setError(null);
@@ -107,7 +132,9 @@ export default function SceneManager({
       return;
     }
 
-    const trimmedTitle = title.trim() || "Untitled Scene";
+    setSyncState("saving");
+
+    const trimmedTitle = activeSceneTitle?.trim() || "Untitled Scene";
     const { data, error: saveError } = await supabase
       .from("scenes")
       .insert({
@@ -120,13 +147,14 @@ export default function SceneManager({
 
     if (saveError) {
       setError(saveError.message);
+      setSyncState("unsynced");
       return;
     }
 
     const row = data as SceneRow;
     setScenes((previous) => [row, ...previous]);
-    setSelectedSceneId(row.id);
-    setTitle(row.title);
+    setActiveScene(row.id, row.title);
+    setSyncState("synced");
     setMessage("Saved to Supabase.");
   }
 
@@ -139,7 +167,7 @@ export default function SceneManager({
       return;
     }
 
-    if (!selectedSceneId) {
+    if (!activeSceneId) {
       setError("Select a scene to update.");
       return;
     }
@@ -150,7 +178,9 @@ export default function SceneManager({
       return;
     }
 
-    const trimmedTitle = title.trim() || "Untitled Scene";
+    setSyncState("saving");
+
+    const trimmedTitle = activeSceneTitle?.trim() || "Untitled Scene";
     const { data, error: updateError } = await supabase
       .from("scenes")
       .update({
@@ -158,7 +188,7 @@ export default function SceneManager({
         scene_json: scene,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", selectedSceneId)
+      .eq("id", activeSceneId)
       .eq("user_id", userId)
       .select("id, title, scene_json, created_at, updated_at")
       .single();
@@ -173,6 +203,7 @@ export default function SceneManager({
       updated,
       ...previous.filter((item) => item.id !== updated.id),
     ]);
+    setSyncState("synced");
     setMessage("Scene updated.");
   }
 
@@ -198,18 +229,20 @@ export default function SceneManager({
 
     setScenes((previous) => previous.filter((item) => item.id !== id));
 
-    if (selectedSceneId === id) {
-      setSelectedSceneId(null);
-      setTitle("Untitled Scene");
+    if (activeSceneId === id) {
+      setActiveScene(null, null);
     }
 
     setMessage("Scene deleted.");
   }
 
-  function handleLoad(row: SceneRow) {
-    setSelectedSceneId(row.id);
-    setTitle(row.title);
+  async function handleLoad(row: SceneRow) {
+    if (syncState === "unsynced") {
+      await handleCloudSync();
+    }
+    setActiveScene(row.id, row.title);
     onLoadScene(row.scene_json);
+    setSyncState("synced");
     setMessage(`Loaded: ${row.title}`);
     setError(null);
   }
@@ -219,7 +252,7 @@ export default function SceneManager({
       <div className="px-5 pt-5 pb-4">
         <button
           type="button"
-          onClick={handleSaveNew}
+          onClick={handleStartNewProject}
           className="w-full flex items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-xs font-bold text-white shadow-sm transition duration-150 hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50"
         >
           <FiPlusSquare className="h-4 w-4" />
@@ -241,27 +274,6 @@ export default function SceneManager({
       <div className="flex flex-1 flex-col overflow-y-auto p-4 custom-scrollbar">
         {activeTab === "scenes" ? (
           <>
-            <div className="mb-6 px-1">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Name your scene..."
-                className="w-full rounded-xl border border-transparent hover:border-border-subtle bg-transparent hover:bg-surface-2 px-3 py-2 text-sm font-bold text-txt-primary placeholder:text-txt-secondary focus:border-accent focus:bg-surface-2 focus:outline-none transition-all duration-150 mb-3"
-              />
-              {selectedSceneId && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleUpdateSelected}
-                    className="flex-1 rounded-lg bg-accent/10 border border-accent/20 px-3 py-2 text-[11px] font-bold text-accent transition-all duration-150 hover:bg-accent/20 focus:outline-none focus:ring-1 focus:ring-accent"
-                  >
-                    Sync State
-                  </button>
-                </div>
-              )}
-            </div>
-
             {loading ? (
               <div className="flex justify-center p-8">
                 <FiLoader className="animate-spin h-5 w-5 text-txt-secondary" />
@@ -275,14 +287,14 @@ export default function SceneManager({
             ) : (
               <div className="flex flex-col gap-6">
                 {/* Active Scene Section */}
-                {selectedSceneId && (
+                {activeSceneId && (
                   <div className="px-1">
                     {scenes
-                      .filter((s) => s.id === selectedSceneId)
+                      .filter((s) => s.id === activeSceneId)
                       .map((activeScene) => (
                         <ActiveSceneCard
                           key={activeScene.id}
-                          title={activeScene.title}
+                          title={activeSceneTitle || activeScene.title}
                           updatedAt={activeScene.updated_at}
                         />
                       ))}
@@ -290,14 +302,14 @@ export default function SceneManager({
                 )}
 
                 {/* Saved Scenes List */}
-                {scenes.filter((s) => s.id !== selectedSceneId).length > 0 && (
+                {scenes.filter((s) => s.id !== activeSceneId).length > 0 && (
                   <div>
                     <h4 className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-2 px-2">
                       Saved Projects
                     </h4>
                     <ul className="space-y-2 px-1">
                       {scenes
-                        .filter((s) => s.id !== selectedSceneId)
+                        .filter((s) => s.id !== activeSceneId)
                         .map((scene) => (
                           <li key={scene.id}>
                             <SceneListItem
@@ -324,21 +336,47 @@ export default function SceneManager({
       </div>
 
       <div className="p-4 border-t border-border-subtle bg-surface-1 shrink-0">
-        <div className="flex items-center justify-between rounded-xl bg-surface-2 p-2 border border-border-subtle shadow-sm">
+        <div className="flex items-center justify-between rounded-xl bg-surface-2 p-2 border border-border-subtle shadow-sm opacity-80 decoration-slice">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/20 text-[10px] font-bold text-accent">
-              P
+            <div className="flex h-5 w-5 items-center justify-center rounded-md bg-accent/10 text-accent">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-accent"
+              >
+                <path
+                  d="M3 3H21V21H3V3Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M8 12L12 8L16 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 16V8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
-            <span className="text-xs font-semibold text-txt-primary">
-              Pro Plan
+            <span className="text-xs font-semibold tracking-tight text-txt-primary">
+              AI Whiteboard
             </span>
           </div>
-          <button
-            className="text-[10px] font-bold text-accent hover:text-accent-hover transition duration-150 px-2 py-1"
-            onClick={() => alert("Pro plan coming soon! Stay tuned.")}
-          >
-            Upgrade
-          </button>
+          <span className="text-[10px] font-mono text-txt-muted px-2 py-1">
+            v1.2.0
+          </span>
         </div>
       </div>
     </div>

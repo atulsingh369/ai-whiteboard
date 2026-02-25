@@ -6,6 +6,11 @@ type UIState = {
   rightPanelOpen: boolean;
   rightPanelPinned: boolean;
 
+  activeSceneId: string | null;
+  activeSceneTitle: string | null;
+
+  syncState: "synced" | "unsynced" | "saving";
+
   toggleLeftSidebar: () => void;
   toggleRightPanel: () => void;
   setLeftSidebarOpen: (open: boolean) => void;
@@ -15,13 +20,22 @@ type UIState = {
   unpinLeftSidebar: () => void;
   unpinRightPanel: () => void;
   closeAll: () => void;
+
+  setActiveScene: (id: string | null, title: string | null) => void;
+  setActiveSceneTitle: (title: string) => void;
+  setSyncState: (state: "synced" | "unsynced" | "saving") => void;
 };
 
 export const useUIStore = create<UIState>((set) => ({
-  leftSidebarOpen: true,
-  leftSidebarPinned: true,
-  rightPanelOpen: true,
-  rightPanelPinned: true,
+  leftSidebarOpen: false,
+  leftSidebarPinned: false,
+  rightPanelOpen: false,
+  rightPanelPinned: false,
+
+  activeSceneId: null,
+  activeSceneTitle: null,
+
+  syncState: "synced",
 
   toggleLeftSidebar: () =>
     set((state) => ({
@@ -53,4 +67,9 @@ export const useUIStore = create<UIState>((set) => ({
       rightPanelOpen: false,
       rightPanelPinned: false,
     }),
+
+  setActiveScene: (id, title) =>
+    set({ activeSceneId: id, activeSceneTitle: title }),
+  setActiveSceneTitle: (title) => set({ activeSceneTitle: title }),
+  setSyncState: (syncState) => set({ syncState }),
 }));

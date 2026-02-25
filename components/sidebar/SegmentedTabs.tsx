@@ -18,7 +18,7 @@ export default function SegmentedTabs({
   onChange,
 }: SegmentedTabsProps) {
   return (
-    <div className="flex p-0.5 space-x-1 rounded-lg bg-[#0F1115] border border-white/[0.06]">
+    <div className="flex p-0.5 space-x-1 rounded-lg bg-surface-app border border-border-subtle">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -27,8 +27,8 @@ export default function SegmentedTabs({
             onClick={() => onChange(tab.id)}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1 text-xs font-semibold transition-all duration-150 ${
               isActive
-                ? "bg-[#1A1F29] text-[#E6E8EB] shadow-sm ring-1 ring-white/[0.06]"
-                : "text-[#9CA3AF] hover:text-[#E6E8EB] hover:bg-white/[0.02]"
+                ? "bg-surface-2 text-txt-primary shadow-sm"
+                : "text-txt-secondary hover:text-txt-primary hover:bg-surface-2/50"
             }`}
           >
             {tab.icon}

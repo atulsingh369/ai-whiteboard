@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FiBox, FiChevronDown, FiLoader, FiZap } from "react-icons/fi";
 import type { ExcalidrawElementLike } from "@/types/diagram";
+import { useUIStore } from "@/stores/uiStore";
 
 type AIPanelProps = {
   onElementsGenerated: (elements: ExcalidrawElementLike[]) => void;
@@ -13,6 +14,7 @@ type HistoryItem = {
   prompt: string;
   model_used: string;
   created_at: string;
+  sceneTitle?: string | null;
 };
 
 const MODELS = [
@@ -22,6 +24,7 @@ const MODELS = [
 ];
 
 export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
+  const { activeSceneTitle } = useUIStore();
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState(MODELS[0]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +77,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
           prompt: trimmedPrompt + styleInstruction,
           model,
           style,
+          sceneTitle: activeSceneTitle,
         }),
       });
 
@@ -99,7 +103,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
   }
 
   return (
-    <div className="flex h-full flex-col p-5 bg-transparent text-txt-primary border-t-0 relative z-10 w-80">
+    <div className="flex h-full flex-col p-5 bg-transparent text-txt-primary border-t-0 relative z-10">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[15px] font-bold tracking-tight text-txt-primary flex items-center gap-2">
           <FiBox className="h-4 w-4 text-accent" />
@@ -189,6 +193,11 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
                         {item.prompt}
                       </p>
                       <p className="text-[10px] text-txt-secondary mt-1 uppercase tracking-widest font-bold">
+                        {item.sceneTitle ? (
+                          <span className="text-accent">
+                            {item.sceneTitle} •{" "}
+                          </span>
+                        ) : null}
                         {item.model_used.includes("/")
                           ? item.model_used.split("/").pop()
                           : item.model_used}{" "}
@@ -217,7 +226,7 @@ export default function AIPanel({ onElementsGenerated }: AIPanelProps) {
             placeholder={
               "Describe your system architecture...\nExample: Create a microservices architecture for an e-commerce app using AWS Lambda, API Gateway, and DynamoDB. Include a Redis cache layer."
             }
-            className="flex-1 w-full min-h-[160px] resize-none rounded-xl border border-border-subtle bg-surface-2 p-3 text-sm text-txt-primary placeholder:text-txt-secondary outline-none transition duration-150 focus:border-accent focus:bg-surface-3 focus:ring-1 focus:ring-accent"
+            className="flex-1 w-full min-h-[160px] resize-none rounded-lg border border-border-subtle bg-surface-app/50 p-4 font-mono text-xs leading-relaxed text-txt-primary placeholder:text-txt-secondary outline-none transition duration-200 focus:border-accent focus:bg-surface-app/80 focus:ring-1 focus:ring-accent/50 shadow-inner"
           />
         )}
 

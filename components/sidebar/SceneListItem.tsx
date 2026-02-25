@@ -25,7 +25,7 @@ export default function SceneListItem({
   return (
     <div
       onClick={onClick}
-      className="group relative rounded-xl border border-transparent bg-surface-2 p-3 shadow-sm transition-all duration-150 cursor-pointer hover:border-border-subtle hover:bg-surface-3"
+      className="group relative rounded-xl border border-transparent bg-surface-2 p-3 transition-all duration-200 cursor-pointer hover:border-border-subtle hover:bg-surface-app/40"
     >
       <div className="flex items-start justify-between">
         <div className="flex flex-col overflow-hidden">

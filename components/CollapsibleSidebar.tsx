@@ -38,82 +38,58 @@ export default function CollapsibleSidebar({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, isPinned, setOpen]);
 
-  const handleMouseEnter = () => {
-    if (isPinned) return;
-    hoverTimerRef.current = setTimeout(() => {
-      setOpen(true);
-    }, 100);
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    if (!isPinned) {
-      setOpen(false);
-    }
-  };
+  // Removed hover expanded behaviors per user request.
 
   const expandedWidth = isLeft ? "280px" : "360px";
   const borderClass = isLeft
-    ? "border-r border-border-subtle"
-    : "border-l border-border-subtle";
+    ? "border-r border-border-strong"
+    : "border-l border-border-strong";
 
-  const CollapseIcon = isLeft ? FiChevronLeft : FiChevronRight;
-  const ExpandIcon = isLeft ? FiChevronRight : FiChevronLeft;
+  const ToggleIcon = isLeft
+    ? isOpen
+      ? FiChevronLeft
+      : FiChevronRight
+    : isOpen
+      ? FiChevronRight
+      : FiChevronLeft;
 
   return (
     <>
-      {/* Collapsed state — small expand button on the edge */}
-
-      <div
-        className={`hidden md:flex shrink-0 items-center ${isLeft ? "" : ""}`}
-      >
-        <button
-          type="button"
-          onClick={() => setOpen(!isOpen)}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className="flex h-7 w-7 items-center justify-center bg-surface-1 border border-border-subtle text-txt-muted hover:text-txt-primary hover:bg-surface-2 transition duration-150 rounded-sm"
-          title={
-            isLeft
-              ? isOpen
-                ? "Close left panel"
-                : "Open left panel"
-              : isOpen
-                ? "Close right panel"
-                : "Open right panel"
-          }
-        >
-          {isOpen ? (
-            <CollapseIcon className="h-7 w-7 text-xl text-white cursor-pointer" />
-          ) : (
-            <ExpandIcon className="h-7 w-7 text-xl text-white cursor-pointer" />
-          )}
-        </button>
-      </div>
-
-      {/* Open state — sidebar panel with collapse handle */}
+      {/* Desktop Sidebar (Glassmorphic) */}
       <aside
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         style={{
           width: isOpen ? expandedWidth : "0px",
           minWidth: isOpen ? expandedWidth : "0px",
         }}
         className={`
-          hidden md:flex flex-col shrink-0 overflow-hidden relative
-          bg-surface-1 ${borderClass}
-          transition-all duration-200 ease-in-out
+          hidden md:flex flex-col shrink-0 relative
+          bg-surface-1 backdrop-blur-3xl ${borderClass}
+          transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] z-30
         `}
       >
+        {/* Unified Edge Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setOpen(!isOpen)}
+          className={`
+            absolute top-1/2 -translate-y-1/2 z-50 flex h-14 w-4 items-center justify-center 
+            bg-surface-1 border border-border-strong backdrop-blur-xl
+            text-txt-muted hover:text-white hover:bg-surface-2 transition duration-200 cursor-pointer
+            ${isLeft ? "right-[-17px] rounded-r-md border-l-0" : "left-[-17px] rounded-l-md border-r-0"}
+          `}
+          title={isOpen ? `Close ${side} panel` : `Open ${side} panel`}
+        >
+          <ToggleIcon className="h-3 w-3" strokeWidth={3} />
+        </button>
+
+        {/* Inner Content Wrapper (hides content when width collapses) */}
         <div
-          className="flex flex-col h-full"
+          className="flex flex-col h-full overflow-hidden"
           style={{
             width: expandedWidth,
             opacity: isOpen ? 1 : 0,
-            transition: "opacity 150ms ease",
+            transition: "opacity 150ms ease, visibility 150ms ease",
+            visibility: isOpen ? "visible" : "hidden",
           }}
         >
           {children}
@@ -124,11 +100,11 @@ export default function CollapsibleSidebar({
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 bg-surface-app/80 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-surface-app/80 backdrop-blur-md z-40 md:hidden"
             onClick={() => setOpen(false)}
           />
           <aside
-            className={`fixed inset-y-0 ${isLeft ? "left-0" : "right-0"} z-50 md:hidden bg-surface-1 ${borderClass} flex flex-col`}
+            className={`fixed inset-y-0 ${isLeft ? "left-0" : "right-0"} z-50 md:hidden bg-surface-1 backdrop-blur-3xl ${borderClass} flex flex-col`}
             style={{ width: expandedWidth }}
           >
             {children}

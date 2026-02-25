@@ -15,6 +15,7 @@ import SceneManager from "@/components/SceneManager";
 import CollapsibleSidebar from "@/components/CollapsibleSidebar";
 import { FiDownload, FiSave } from "react-icons/fi";
 import type { ExcalidrawElementLike } from "@/types/diagram";
+import { useUIStore } from "@/stores/uiStore";
 
 const Excalidraw = dynamic(
   async () => {
@@ -60,6 +61,9 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
   const loadJsonInputRef = useRef<HTMLInputElement | null>(null);
   const [viewMode, setViewMode] = useState<"editor" | "code">("editor");
   const saveToSupabaseRef = useRef<(() => void) | null>(null);
+  const { syncState, setSyncState } = useUIStore();
+  const lastElementsRef = useRef<unknown[]>([]);
+  const isApplyingSceneRef = useRef(false);
 
   const captureScene = useCallback((): ScenePayload | null => {
     const api = apiRef.current;
@@ -82,9 +86,11 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
 
     const safeAppState = {
       ...scene.appState,
+      viewBackgroundColor: "transparent",
       collaborators: new Map(),
     };
 
+    isApplyingSceneRef.current = true;
     api.updateScene({
       elements: scene.elements,
       appState: safeAppState,
@@ -108,6 +114,10 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
     },
     [],
   );
+
+  const handleRegisterSave = useCallback((saveFn: () => void) => {
+    saveToSupabaseRef.current = saveFn;
+  }, []);
 
   const actions = useMemo(
     () => ({
@@ -219,7 +229,7 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
   }
 
   return (
-    <main className="flex h-screen w-full flex-col bg-surface-app font-sans text-txt-primary">
+    <main className="flex h-[calc(100vh-56px)] w-full flex-col bg-surface-app font-sans text-txt-primary relative z-0">
       <input
         ref={loadJsonInputRef}
         type="file"
@@ -228,81 +238,49 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
         onChange={handleJsonFileUpload}
       />
 
-      {/* Zone 2 — Workspace Toolbar (below header, above canvas) */}
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-border-subtle bg-surface-1/60 backdrop-blur-sm px-4">
-        {/* Left — View mode toggle */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-md border border-border-subtle bg-surface-app p-0.5">
-            <button
-              type="button"
-              onClick={() => setViewMode("editor")}
-              className={`rounded-[4px] px-3 py-1 text-[11px] font-semibold transition duration-150 ${
-                viewMode === "editor"
-                  ? "bg-surface-2 text-txt-primary shadow-sm"
-                  : "text-txt-secondary hover:text-txt-primary"
-              }`}
-            >
-              Editor
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("code")}
-              className={`rounded-[4px] px-3 py-1 text-[11px] font-semibold transition duration-150 ${
-                viewMode === "code"
-                  ? "bg-surface-2 text-txt-primary shadow-sm"
-                  : "text-txt-secondary hover:text-txt-primary"
-              }`}
-            >
-              Code View
-            </button>
-          </div>
-        </div>
-
-        {/* Right — Actions */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={actions.exportPng}
-            className="flex items-center gap-1.5 rounded-md border border-border-subtle bg-surface-2 px-2.5 py-1 text-[11px] font-semibold text-txt-primary transition duration-150 hover:bg-surface-3"
-          >
-            <FiDownload className="h-3 w-3" />
-            Export
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (saveToSupabaseRef.current) {
-                saveToSupabaseRef.current();
-              } else {
-                actions.saveLocal();
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-md bg-accent px-2.5 py-1 text-[11px] font-semibold text-white transition duration-150 hover:bg-accent-hover"
-          >
-            <FiSave className="h-3 w-3" />
-            Save
-          </button>
-        </div>
-      </div>
-
       {/* Zone 3 + Zone 4 — Canvas + Side Panels */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
+        {/* Floating Mode Toggle */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center rounded-2xl border border-border-strong bg-surface-1/90 backdrop-blur-xl p-1.5 shadow-card-elevation z-50">
+          <button
+            type="button"
+            onClick={() => setViewMode("editor")}
+            className={`rounded-xl px-6 py-2.5 text-[13px] font-bold tracking-wide transition-all duration-200 ${
+              viewMode === "editor"
+                ? "bg-accent text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]"
+                : "text-txt-secondary hover:text-txt-primary hover:bg-surface-3/50"
+            }`}
+          >
+            Canvas
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("code")}
+            className={`rounded-xl px-6 py-2.5 text-[13px] font-bold tracking-wide transition-all duration-200 ${
+              viewMode === "code"
+                ? "bg-accent text-white shadow-[0_0_15px_rgba(14,165,233,0.3)]"
+                : "text-txt-secondary hover:text-txt-primary hover:bg-surface-3/50"
+            }`}
+          >
+            Code
+          </button>
+        </div>
         {/* Left Sidebar (Zone 4) */}
         <CollapsibleSidebar side="left">
           <SceneManager
             userId={userId}
             onLoadScene={(scene) => applyScene(scene)}
             getCurrentScene={captureScene}
-            onRegisterSave={(saveFn) => {
-              saveToSupabaseRef.current = saveFn;
-            }}
+            onRegisterSave={handleRegisterSave}
           />
         </CollapsibleSidebar>
 
         {/* Canvas Area (Zone 3) — Excalidraw owns this space entirely */}
-        <div className="relative flex-1 flex flex-col bg-surface-app min-w-0 overflow-hidden">
-          <div className="absolute inset-0 bg-dot-pattern mix-blend-overlay pointer-events-none" />
-          <div className="absolute inset-0 bg-canvas-glow pointer-events-none" />
+        <div className="relative flex-1 flex flex-col bg-surface-app min-w-0 overflow-hidden border-t border-border-subtle">
+          {/* Luminous Engine Grid Background */}
+          <div className="absolute inset-0 bg-luminous-grid bg-grid-24 opacity-60 pointer-events-none" />
+          <div className="absolute inset-0 bg-vignette-radial pointer-events-none" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-ai-glow pointer-events-none opacity-50 mix-blend-screen" />
 
           <div className="relative flex-1">
             {/* Always-mounted Excalidraw — toggled via CSS to preserve state */}
@@ -323,6 +301,21 @@ export default function Whiteboard({ userId, userEmail }: WhiteboardProps) {
                     clearCanvas: true,
                     toggleTheme: false,
                   },
+                }}
+                onChange={(elements: any, appState: any) => {
+                  if (isApplyingSceneRef.current) {
+                    isApplyingSceneRef.current = false;
+                    lastElementsRef.current = elements;
+                    return;
+                  }
+
+                  if (
+                    syncState === "synced" &&
+                    elements !== lastElementsRef.current
+                  ) {
+                    setSyncState("unsynced");
+                  }
+                  lastElementsRef.current = elements;
                 }}
               />
             </div>

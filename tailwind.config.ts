@@ -10,36 +10,43 @@ const config: Config = {
     extend: {
       colors: {
         surface: {
-          app: "#0B1220", // Level 0: Background Base
-          1: "#111827", // Level 1: Sidebar / Panels
-          2: "#1A2234", // Level 2: Cards / Floating toolbars
-          3: "#243041", // Level 3: Modals / Hover states
+          app: "#030712", // Layer 0: Deep void
+          1: "rgba(17, 24, 39, 0.7)", // Layer 1: Glass panels (backdrop-blur applied via utility)
+          2: "#1F2937", // Layer 2: Interactive surfaces
+          3: "#374151", // Layer 3: Hover states
         },
         border: {
-          subtle: "rgba(255,255,255,0.06)",
+          subtle: "rgba(255, 255, 255, 0.08)",
+          strong: "rgba(255, 255, 255, 0.15)",
         },
         txt: {
-          primary: "#FFFFFF",
+          primary: "#F9FAFB",
           secondary: "#9CA3AF",
           muted: "#6B7280",
         },
         accent: {
-          DEFAULT: "#3B82F6", // Primary Blue
-          hover: "#2563EB", // Hover Blue
+          DEFAULT: "#0EA5E9", // Electric Cyan
+          hover: "#0284C7",
+          glow: "rgba(14, 165, 233, 0.15)",
+          violet: "#8B5CF6", // AI processing glow
         },
       },
       backgroundImage: {
         "hero-glow":
-          "radial-gradient(circle at 0% 50%, rgba(37, 99, 235, 0.15) 0%, transparent 60%)",
-        "canvas-glow":
-          "radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.08) 0%, transparent 70%)",
+          "radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15) 0%, transparent 50%)",
+        "luminous-grid":
+          "linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)",
+        "vignette-radial":
+          "radial-gradient(circle at center, transparent 30%, #030712 100%)",
+        "ai-glow":
+          "radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 60%)",
+      },
+      backgroundSize: {
+        "grid-24": "24px 24px",
       },
       boxShadow: {
         "card-elevation":
-          "0 20px 40px rgba(0, 0, 0, 0.6), 0 0 60px -15px rgba(37, 99, 235, 0.1)", // Level 3 Modals
-        "toolbar-elevation":
-          "0 8px 30px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.06)", // Level 2 Floating
-        "panel-elevation": "10px 0 30px rgba(0, 0, 0, 0.3)", // Level 1 Sidebar (Left/Right depending on placement)
+          "0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.08)",
       },
       transitionDuration: {
         sidebar: "200ms",

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { FiLogOut, FiSettings } from "react-icons/fi";
+import { FiLogOut, FiCloud, FiCloudOff, FiRefreshCw } from "react-icons/fi";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
+import { useUIStore } from "@/stores/uiStore";
 
 type HeaderProps = {
   user?: {
@@ -14,6 +15,8 @@ export default function Header({ user }: HeaderProps) {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
 
+  const { activeSceneTitle, setActiveSceneTitle, syncState } = useUIStore();
+
   useOnClickOutside(avatarMenuRef, () => {
     if (avatarMenuOpen) setAvatarMenuOpen(false);
   });
@@ -21,9 +24,9 @@ export default function Header({ user }: HeaderProps) {
   const isLoggedIn = Boolean(user);
 
   return (
-    <header className="relative z-50 flex h-12 shrink-0 items-center justify-between border-b border-border-subtle bg-surface-1/80 backdrop-blur-md px-4">
-      {/* Left — Logo */}
-      <div className="flex items-center gap-2.5">
+    <header className="relative z-50 flex h-14 shrink-0 items-center justify-between bg-surface-app px-6">
+      {/* Left — Logo & Title */}
+      <div className="flex items-center gap-3">
         <div className="flex h-6 w-6 items-center justify-center text-accent">
           <svg
             viewBox="0 0 24 24"
@@ -43,25 +46,66 @@ export default function Header({ user }: HeaderProps) {
             />
           </svg>
         </div>
-        <span className="text-sm font-semibold tracking-tight text-txt-primary">
+
+        <span className="text-sm font-semibold tracking-tight text-txt-primary hidden sm:inline-block">
           AI Whiteboard
         </span>
+
+        {activeSceneTitle !== null && (
+          <>
+            <span className="text-border-strong hidden sm:inline-block">/</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={activeSceneTitle}
+                onChange={(e) => setActiveSceneTitle(e.target.value)}
+                className="bg-transparent border-none text-[13px] font-semibold text-txt-primary focus:outline-none focus:ring-0 max-w-[200px] truncate hover:text-accent transition duration-150"
+                placeholder="Untitled Project"
+              />
+              <div className="h-4 w-px bg-border-strong mx-1" />
+              <div className="flex items-center justify-center">
+                {syncState === "synced" && (
+                  <div
+                    title="Document synced"
+                    className="text-txt-muted p-1 rounded-md hover:bg-surface-3 transition"
+                  >
+                    <FiCloud className="h-4 w-4" />
+                  </div>
+                )}
+                {syncState === "unsynced" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.dispatchEvent(new CustomEvent("triggerCloudSync"))
+                    }
+                    title="Document has unsaved changes. Click to sync."
+                    className="text-txt-primary p-1 rounded-md hover:bg-surface-3 hover:text-accent transition bg-surface-2 border border-border-subtle shadow-sm"
+                  >
+                    <FiCloudOff className="h-4 w-4" />
+                  </button>
+                )}
+                {syncState === "saving" && (
+                  <div title="Saving..." className="text-accent p-1 rounded-md">
+                    <FiRefreshCw className="h-4 w-4 animate-spin" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Center — Marketing nav (logged-out only) */}
-      {!isLoggedIn && (
-        <nav className="hidden md:flex items-center gap-8">
-          {["Product", "Pricing", "Documentation"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="text-[13px] font-medium text-txt-secondary hover:text-txt-primary transition duration-150"
-            >
-              {item}
-            </a>
-          ))}
-        </nav>
-      )}
+      <nav className="hidden md:flex items-center gap-8">
+        {["Product", "Pricing", "Documentation"].map((item) => (
+          <a
+            key={item}
+            href="#"
+            className="text-[13px] font-medium text-txt-secondary hover:text-txt-primary transition duration-150"
+          >
+            {item}
+          </a>
+        ))}
+      </nav>
 
       {/* Right — Controls */}
       <div className="flex items-center gap-3">

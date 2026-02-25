@@ -17,7 +17,7 @@ export default function ActiveSceneCard({
   });
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border-subtle bg-surface-2 p-3 shadow-md">
+    <div className="relative overflow-hidden rounded-xl border border-border-strong bg-surface-app/40 p-3">
       {/* Accent left border highlight */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
 
